@@ -22,7 +22,7 @@ export const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(email);
+      const success = await login(email,password);
       if (success) {
         navigate(from, { replace: true });
       } else {

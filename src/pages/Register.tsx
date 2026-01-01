@@ -16,7 +16,7 @@ export const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await register(email, name);
+    await register(email, name, password);
     navigate('/feed');
     setIsLoading(false);
   };
