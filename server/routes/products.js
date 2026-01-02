@@ -19,12 +19,27 @@ router.get('/:id', async (req, res) => {
 });
 
 // ADD
+
 router.post('/', async (req, res) => {
+  console.log("🔔 Add Product route hit!");
+  console.log("📦 Data received:", req.body); // <--- See what the frontend sent
+
   try {
+    // 1. Check if sellerId is missing (Common Error)
+    if (!req.body.sellerId) {
+      console.error("❌ Error: Missing sellerId!");
+      return res.status(400).json({ message: "Product must have a sellerId" });
+    }
+
     const newProduct = new Product(req.body);
     const savedProduct = await newProduct.save();
+    
+    console.log("✅ Product saved successfully!");
     res.json({ ...savedProduct._doc, id: savedProduct._id });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    console.error("❌ Save failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // DELETE

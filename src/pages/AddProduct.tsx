@@ -32,6 +32,7 @@ export const AddProduct: React.FC = () => {
           navigate('/my-listings'); // Not authorized
           return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTitle(product.title);
         setPrice(product.price.toString());
         setCategory(product.category);
