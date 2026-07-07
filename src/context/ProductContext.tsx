@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Product } from '../types';
+import { DUMMY_PRODUCTS } from '../data/dummy'; // Imported dummy data
 
 interface ProductContextType {
   products: Product[];
@@ -14,23 +15,36 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>([]);
+  // Seed with dummy products initially so the feed is never empty
+  const [products, setProducts] = useState<Product[]>(DUMMY_PRODUCTS);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Helper utility to normalize backend MongoDB objects safely
+  const normalizeProduct = (prod: any): Product => ({
+    ...prod,
+    id: prod.id || prod._id, 
+  });
 
   // 1. Fetch products from Backend on load
   const refreshProducts = async () => {
     setIsLoading(true);
     try {
-      // Use the Proxy URL (/api/products)
       const response = await fetch('/api/products');
       if (!response.ok) throw new Error('Failed to fetch products');
       const data = await response.json();
       
-      // MongoDB returns '_id', we need to make sure frontend uses 'id'
-      // The backend map function handled this, but good to be safe
-      setProducts(data);
+      // If the backend returns data and it's not empty, update our state
+      if (Array.isArray(data) && data.length > 0) {
+        const safeData = data.map(normalizeProduct);
+        setProducts(safeData);
+      } else {
+        // Fallback to dummy data if database collection is empty
+        setProducts(DUMMY_PRODUCTS);
+      }
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Error fetching products, falling back to dummy data:", error);
+      // Keep dummy products on screen if API call fails entirely
+      setProducts(DUMMY_PRODUCTS);
     } finally {
       setIsLoading(false);
     }
@@ -55,10 +69,10 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
 
       const newProduct = await response.json();
-      setProducts(prev => [newProduct, ...prev]);
+      setProducts(prev => [normalizeProduct(newProduct), ...prev]);
     } catch (error) {
       console.error("Error adding product:", error);
-      throw error; // Re-throw so the UI knows it failed
+      throw error;
     }
   };
 
@@ -74,19 +88,22 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!response.ok) throw new Error('Failed to update product');
       
       const updatedProduct = await response.json();
-      setProducts(prev => prev.map(p => p.id === id ? updatedProduct : p));
+      setProducts(prev => prev.map(p => p.id === id ? normalizeProduct(updatedProduct) : p));
     } catch (error) {
       console.error("Error updating product:", error);
+      throw error;
     }
   };
 
   // 4. Delete Product
   const deleteProduct = async (id: string) => {
     try {
-      await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete product');
       setProducts(prev => prev.filter(p => p.id !== id));
     } catch (error) {
       console.error("Error deleting product:", error);
+      throw error;
     }
   };
 

@@ -54,7 +54,7 @@ export const DUMMY_PRODUCTS: Product[] = [
     price: 25.00,
     category: 'Sports',
     description: 'Cork yoga mat, non-slip and sustainable.',
-    imageUrl: 'https://images.unsplash.com/photo-1592432678016-e910b452f9a9?w=500&h=500&fit=crop',
+    imageUrl: 'https://tse2.mm.bing.net/th/id/OIP.SQ3842b73R2MUnrESFBPqAHaFS?r=0&cb=thfvnextfalcon4&rs=1&pid=ImgDetMain&o=7&rm=3',
     sellerId: 'u1',
     createdAt: '2023-10-12',
   },
